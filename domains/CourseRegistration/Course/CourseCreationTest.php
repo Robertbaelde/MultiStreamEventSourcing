@@ -5,6 +5,7 @@ namespace Domains\CourseRegistration\Course;
 use EventStream\Envelope;
 use EventStream\EventRecorder;
 use EventStream\EventStore;
+use EventStream\InMemoryEventStore;
 use PHPUnit\Framework\TestCase;
 
 class CourseCreationTest extends TestCase
@@ -12,10 +13,14 @@ class CourseCreationTest extends TestCase
     private EventStore $eventStore;
     private ?\Exception $expectedException = null;
     private ?\Exception $thrownException = null;
+    /**
+     * @var Envelope[]
+     */
+    private array $recordedEvents = [];
 
     public function setUp(): void
     {
-        $this->eventStore = new EventStore();
+        $this->eventStore = new InMemoryEventStore();
     }
 
     /** @test */
@@ -54,17 +59,19 @@ class CourseCreationTest extends TestCase
 
     private function given(Envelope ...$events): self
     {
-        foreach ($events as $event) {
-            $this->eventStore->recordEvent($event);
-        }
+        $this->eventStore->recordEvents($events, null);
         return $this;
     }
 
     private function when(CreateCourse $command): self
     {
         try {
-            $messageHandler = new CreateCourseMessageHandler(new EventRecorder($this->eventStore));
-            $messageHandler->handle($command);
+            $query = CreateCourseMessageHandler::getEventQuery($command);
+            $queryResult = $this->eventStore->query($query);
+            $commandHandler = CreateCourseMessageHandler::reconstituteFrom($queryResult);
+            $commandHandler->createCourse($command);
+            $this->recordedEvents = $commandHandler->releaseEvents();
+            $this->eventStore->recordEvents($this->recordedEvents, $queryResult->getLock());
         } catch (\Exception $exception) {
             $this->thrownException = $exception;
         }
@@ -74,7 +81,7 @@ class CourseCreationTest extends TestCase
 
     private function then(Envelope ...$expectedEvents): void
     {
-        $this->assertEquals($expectedEvents, $this->eventStore->getRecordedMessages());
+        $this->assertEquals($expectedEvents, $this->recordedEvents);
     }
 
     private function thenExpectToFail(\Exception $expectedException): self

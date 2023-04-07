@@ -5,15 +5,20 @@ namespace EventStream;
 class Envelope
 {
     public function __construct(
-        public readonly EventId $eventId,
         public readonly Message $message,
         public readonly DomainIdentifiers $domainIdentifiers,
+        public readonly ?EventId $eventId = null,
     )
     {
     }
 
     public static function wrap(Message $message, DomainIdentifier ...$domainIdentifiers): Envelope
     {
-        return new Envelope(EventId::generate(), $message, new DomainIdentifiers(...$domainIdentifiers));
+        return new Envelope( $message, new DomainIdentifiers(...$domainIdentifiers));
+    }
+
+    public function withEventId(EventId $eventId): Envelope
+    {
+        return new Envelope($this->message, $this->domainIdentifiers, $eventId);
     }
 }
