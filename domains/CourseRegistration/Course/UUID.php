@@ -11,7 +11,7 @@ abstract class UUID implements DomainIdentifier
 
     }
 
-    public static function generate(): DomainIdentifier
+    public static function generate(): static
     {
         return new static(\Ramsey\Uuid\Uuid::uuid4()->toString());
     }
@@ -20,8 +20,13 @@ abstract class UUID implements DomainIdentifier
         return $this->id;
     }
 
-    public static function fromString(string $id): DomainIdentifier
+    public static function fromString(string $id): static
     {
         return new static($id);
+    }
+
+    public function equals(DomainIdentifier $other): bool
+    {
+        return $this->toString() === $other->toString();
     }
 }
