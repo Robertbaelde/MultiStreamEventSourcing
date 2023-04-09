@@ -2,7 +2,7 @@
 
 namespace EventStream\Stubs;
 
-use Domains\CourseRegistration\Course\UUID;
+use EventStream\UUID;
 
 class IdentifierB extends UUID
 {

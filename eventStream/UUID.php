@@ -1,8 +1,6 @@
 <?php
 
-namespace Domains\CourseRegistration\Course;
-
-use EventStream\DomainIdentifier;
+namespace EventStream;
 
 abstract class UUID implements DomainIdentifier
 {
