@@ -47,10 +47,12 @@ class CourseEnrollmentHandler extends EventMessageHandler implements MessageHand
     {
         $this->studentCourseEnrollmentLimit = $studentCourseEnrollmentLimitChanged->limit;
     }
+
     public function applyCourseCapacityChanged(CourseCapacityChanged $courseCapacityChanged, Envelope $envelope): void
     {
         $this->courseCapacity = $courseCapacityChanged->courseCapacity;
     }
+
     protected function applyStudentEnrolledInCourse(StudentEnrolledInCourse $studentEnrolledInCourse, Envelope $envelope): void
     {
         if($envelope->domainIdentifiers->contains($this->courseToEnrollIn)){
@@ -71,7 +73,7 @@ class CourseEnrollmentHandler extends EventMessageHandler implements MessageHand
         if(!$command instanceof EnrollInCourse){
             throw new InvalidArgumentException('Invalid command');
         }
-//
+
         if($this->studentEnrolledInCourse){
             throw SorryCantEnrollStudent::studentAlreadyEnrolled($command->studentId, $command->courseId);
         }
